@@ -1,0 +1,3 @@
+#!/bin/bash
+gcc -o thread1_5_a -Wall -Wextra -pthread -O0 thread1_5_a.c
+gcc -o thread1_5_b -Wall -Wextra -pthread -O0 thread1_5_b.c
