@@ -6,7 +6,7 @@
 #include <errno.h>
 
 #define handle_error(en, msg) \
-	do{errno = en; perror(msg); pthread_exit((void*)EXIT_FAILURE); } while(0)
+	{errno = en; perror(msg); pthread_exit((void*)EXIT_FAILURE); }
 #define COUNT_THREADS 3
 
 
