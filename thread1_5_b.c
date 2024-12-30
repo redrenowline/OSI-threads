@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+
 #define handle_error(en, msg) \
 	do{ errno = en; perror(msg); exit(EXIT_FAILURE); } while(0)
 
@@ -24,7 +25,9 @@ void sigint_handler2() {
 }
 
 void *thread_1_function() {
-    	signal(SIGINT, sigint_handler1);
+    	void* prev = signal(SIGINT, sigint_handler1);
+    	if(prev == SIG_ERR)
+    		handle_error(errno, "thread2 function failed: signal() doesn't work");
     	printf("Поток 2: Ожидание сигнала SIGINT...\n");
     	while(!SIGINT1_received) {
         	sleep(1);
@@ -33,7 +36,9 @@ void *thread_1_function() {
 }
 
 void* thread_2_function() {
-    	signal(SIGINT, sigint_handler2);
+    	void* prev = signal(SIGINT, sigint_handler2);
+    	if(prev == SIG_ERR)
+    		handle_error(errno, "thread2 function failed: signal() doesn't work");
     	printf("Поток 3: Ожидание сигнала SIGINT...\n");
     	while(!SIGINT2_received) {
         	sleep(1);
