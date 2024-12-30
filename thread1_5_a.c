@@ -6,7 +6,7 @@
 #include <errno.h>
 
 #define handle_error(en, msg) \
-	do{ errno = en; perror(msg); exit(EXIT_FAILURE); } while(0)
+	do{errno = en; perror(msg); pthread_exit((void*)EXIT_FAILURE); } while(0)
 #define COUNT_THREADS 3
 
 
@@ -80,31 +80,41 @@ int main() {
 
 
     	int err = pthread_create(&threads[0], NULL, thread_1_function, NULL);
-    	if(err != 0) 
+    	if(err != 0){
+    		free(threads);
     		handle_error(err, "main: pthread_create failed ");
+    	}
     	err = pthread_create(&threads[1], NULL, thread_2_function, NULL);
-    	if(err != 0) 
+    	if(err != 0){
+    		free(threads);
     		handle_error(err, "main: pthread_create failed ");
+    	}
     	err = pthread_create(&threads[2], NULL, thread_3_function, NULL);
-    	if(err != 0) 
+    	if(err != 0){
+    		free(threads);
     		handle_error(err, "main: pthread_create failed ");
-    	
+    	}
     	
     	sleep(1);
     	err = pthread_kill(threads[1], SIGINT);
-    	if(err != 0) 
+    	if(err != 0){
+    		free(threads);
     		handle_error(err, "main: pthread_kill failed");
+    	}
     	sleep(1);
     	err = pthread_kill(threads[2], SIGQUIT);
-    	if(err != 0) 
+    	if(err != 0) {
+    		free(threads);
     		handle_error(err, "main: pthread_kill failed");
-    	
+    	}
     	
  	for(int i=0;i < COUNT_THREADS; i++){
  		err = pthread_join(threads[i], NULL);
  		if(err != 0){
+ 			free(threads);
  			handle_error(err, "main: pthread_join failed");
  		}
  	}
-    	return 0;
+ 	free(threads);
+    	pthread_exit(NULL);
 }
