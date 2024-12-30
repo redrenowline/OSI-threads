@@ -7,7 +7,7 @@
 
 
 #define handle_error(en, msg) \
-	do{ errno = en; perror(msg); exit(EXIT_FAILURE); } while(0)
+	do{errno = en; perror(msg); pthread_exit((void*)EXIT_FAILURE); } while(0)
 
 int SIGINT1_received = 0;
 int SIGINT2_received = 0;
@@ -72,5 +72,5 @@ int main() {
     	if(err != 0) 
     		handle_error(err, "main: pthread_join failed");
 
-    	return 0;
+    	pthread_exit(NULL);
 }
