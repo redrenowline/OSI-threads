@@ -23,8 +23,13 @@ void sigint_handler() {
 void *thread_1_function() {
     	sigset_t signal_set;
     	printf("Поток 1: Начало работы\n");
-    	sigfillset(&signal_set);
-    	pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
+    	int err = sigfillset(&signal_set);
+    	if(err != 0){
+    		handle_error(errno, "thread1 function failed: sigfillset return -1");
+    	}
+    	err = pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
+	if(err != 0)
+		handle_error(err, "thread1 function failed: pthread_sigmask doesn't work");
 
     	while (!(SIGQUIT_received && SIGINT_received)) {
         	sleep(1);
@@ -35,7 +40,9 @@ void *thread_1_function() {
 }
 
 void *thread_2_function() {
-    	signal(SIGINT, sigint_handler);
+        void* prev = signal(SIGINT, sigint_handler);
+    	if(prev == SIG_ERR)
+    		handle_error(errno, "thread2 function failed: signal() doesn't work");
     	printf("Поток 2: Ожидание сигнала SIGINT...\n");
     	while(!SIGINT_received) {
         	sleep(1);
@@ -46,8 +53,14 @@ void *thread_2_function() {
 void* thread_3_function() {
     	int sig;
     	sigset_t set;
-    	sigemptyset(&set);
-    	sigaddset(&set, SIGQUIT);
+    	int err = sigemptyset(&set);
+    	if(err != 0){
+    		handle_error(errno, "thread3 function failed: sigemptyset() doesn't work");
+    	}
+    	err = sigaddset(&set, SIGQUIT);
+    	if(err != 0){
+    		handle_error(errno, "thread3 function failed: sigaddset() doesn't work");
+    	}
     	printf("Поток 3: Ожидание сигнала SIGQUIT...\n");
     	int result = sigwait(&set, &sig);
     	if (result == 0) {
@@ -61,6 +74,9 @@ void* thread_3_function() {
 
 int main() {
     	pthread_t* threads = (pthread_t*)malloc(3 * sizeof(pthread_t));
+	if(threads == NULL){
+		handle_error(errno, "main: malloc can't get memory ");
+	}
 
 
     	int err = pthread_create(&threads[0], NULL, thread_1_function, NULL);
